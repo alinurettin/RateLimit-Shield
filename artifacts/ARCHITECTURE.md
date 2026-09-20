@@ -1,4 +1,4 @@
-﻿# ğŸ“ System Architecture Document: RateLimit-Shield
+﻿# 📐 System Architecture Document: RateLimit-Shield
 - **Project:** RateLimit-Shield
 - **Author:** Expert Software Architect
 - **Status:** APPROVED & COMPLETE
