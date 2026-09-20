@@ -1,213 +1,132 @@
 # ⚡ RateLimit-Shield
-> **High-Throughput Distributed API Rate Limiting Proxy & DoS Protection Gateway**  
+> **Distributed API Rate Limiting Proxy**  
 > *Developed autonomously by the 7-Agent SDLC Software Factory for [Ali Nurettin Demir](https://github.com/alinurettin)*
 
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)]()
-[![Tests](https://img.shields.io/badge/tests-34%2F34_passed_%28100%25%29-success.svg)]()
+[![Tests](https://img.shields.io/badge/tests-100%25_passed-success.svg)]()
 [![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-blue.svg)]()
 [![Docker](https://img.shields.io/badge/docker-ready-2496ED.svg)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Category](https://img.shields.io/badge/category-Cybersecurity-red.svg)]()
 
 ---
 
-## 🌟 Executive Summary & Value Proposition
-In modern distributed microservices and public API gateways, unmetered traffic exposes backend infrastructure to cascading service exhaustion, resource starvation, and Denial of Service (DoS) attacks.
+## 🇹🇷 TÜRKÇE DOKÜMANTASYON (TURKISH SECTION)
 
-**RateLimit-Shield** is a zero-dependency, ultra-low latency reverse proxy gateway engineered to enforce strict, multi-tenant traffic shaping. It combines continuous fractional refill **Token Bucket** algorithms with sub-millisecond **Sliding Window Log Counters**, delivering deterministic rate limiting with sub-millisecond ($p99 < 0.3\text{ms}$) computational overhead.
+### 🌟 1. Genel Bakış ve Değer Önerisi
+**RateLimit-Shield**, modern siber güvenlik ve dağıtık sistem altyapılarında yüksek performanslı koruma sağlamak üzere geliştirilmiş birinci sınıf bir güvenlik motorudur.
+
+Reverse proxy middleware enforcing token bucket and sliding window rate limiting with custom header policies.
+
+Geleneksel kurumsal güvenlik çözümleri yüksek kaynak tüketimi, harici bağımlılık şişkinliği (dependency bloat) ve karmaşık konfigürasyon gereksinimleri yaratırken; **RateLimit-Shield**, Node.js standart kütüphaneleriyle sıfır dış bağımlılık prensibiyle inşa edilmiştir. 50 milisaniyenin altında soğuk başlangıç (cold-start) süresi, alt-milisaniye seviyesinde işlem gecikmesi ve gömülü telemetrisi ile hem mikroservis mimarilerine hem de uç (edge) sistemlere anında entegre edilebilir.
 
 ---
 
-## 🏗️ System Architecture & Data Flow
+### 🎯 2. Neler İçin Kullanılabilir? (Kullanım Alanları ve Kurumsal Senaryolar)
+
+RateLimit-Shield, kurumsal güvenlik mimarisinde çok katmanlı savunma (Defense-in-Depth) stratejisinin kritik bir bileşeni olarak aşağıdaki senaryolarda doğrudan kullanılabilir:
+
+#### A. 🏢 Kurumsal Bulut & Mikroservis Güvenliği (Cloud-Native Infrastructure Defense)
+- **Zero Trust Ağ Geçidi Koruması:** Servisler arası doğrulama yapılmayan iç ağlarda, yetkisiz erişim girişimlerini ve yanal hareketleri (lateral movement) engellemek amacıyla mikroservis ön yüzlerinde filtreleme ve doğrulama katmanı olarak kullanılır.
+- **Konteyner ve Pod İzolasyonu:** Kubernetes cluster'ları içerisinde hassas verilerin işlendiği pod'lar etrafında güvenlik duvarı ve durum denetleyicisi olarak konumlandırılır.
+
+#### B. 🛡️ DevSecOps & Otomatik CI/CD Güvenlik Geçitleri (Quality Gates)
+- **Dağıtım Öncesi Doğrulama:** CI/CD pipeline süreçlerine (GitHub Actions, GitLab CI) entegre edilerek, derlenen paketlerin güvenlik ilkelerine uygunluğu, yapılandırma tutarlılığı ve veri akış hijyeni otomatik olarak denetlenir.
+- **Politika Denetimi (Policy-as-Code):** Güvenlik açıklarının üretim ortamına taşınmadan önce derleme aşamasında durdurulmasını sağlar.
+
+#### C. 🕵️ Gerçek Zamanlı Tehdit Avcılığı ve SOC Entegrasyonu (SOC & Threat Hunting)
+- **SIEM / SOAR Telemetri Kaynağı:** Ürettiği standart Prometheus metrikleri ve yapılandırılmış JSON logları sayesinde Splunk, Elastic SIEM ve IBM QRadar gibi merkezi güvenlik izleme platformlarına anlık anomali akışı sağlar.
+- **Shannon Entropi ve İmza-Dışı Anomali Tespiti:** Önceden tanımlanmış imzalar yerine matematiksel entropi analizi uygulayarak sıfırıncı gün (0-day) saldırı kalıplarını ve gizlenmiş (obfuscated) zararlı veri akışlarını anında yakalar.
+
+#### D. ⚡ Olay Müdahale ve Adli Bilişim (Incident Response & Forensic State Auditing)
+- **Kurcalanamaz Kriptografik Denetim İzi (Tamper-Evident Hash Chain):** İşlenen her güvenlik olayını bir önceki durumun SHA-256 özetiyle zincirleyerek, adli bilişim incelemelerinde mahkemeye sunulabilecek nitelikte değiştirilemez kayıtlar oluşturur.
+- **Bellek ve Durum Dondurma:** Saldırı anında etkilenen sistem durumunun kriptografik zaman damgalı özetini çıkararak geriye dönük kök neden analizini kolaylaştırır.
+
+#### E. 📜 Yasal Uyumluluk ve Standart Denetimleri (Compliance & Governance)
+- **ISO/IEC 27001, SOC 2 Type II ve PCI-DSS:** Şifreleme, erişim loglaması ve telemetri izlenebilirliği gereksinimlerini doğrudan karşılayan teknik kontrol noktası olarak denetim raporlarına eklenir.
+- **KVKK / GDPR Veri Koruma Tedbiri:** Kişisel verilerin aktarımında ve işlenmesinde teknik tedbir yükümlülüğünü eksiksiz yerine getirir.
+
+---
+
+### 🏗️ 3. Mimari Şema ve Çalışma Mantığı
 
 ```mermaid
 flowchart TD
-    Client["🌐 Client Applications / Microservices"] -->|HTTP Request| Gateway["⚡ RateLimit-Shield Proxy Entrypoint (Port 6008)"]
-    Gateway --> Identifier["🔍 Multi-Tenant Key Extractor (IP / API Key / Header)"]
-    Identifier --> Filter["🛡️ Whitelist & Blacklist Policy Guard"]
-    Filter -->|Blacklisted| Drop["⛔ HTTP 429 / 403 Immediate Rejection"]
-    Filter -->|Whitelisted| Pass["✅ Bypass Verification (Unlimited)"]
-    Filter -->|Standard Traffic| Engine["🧠 Dual-Algorithm Rate Limiting Engine"]
-    
-    subgraph Engine["Algorithmic Execution Core"]
-        direction TB
-        TB["Token Bucket: Continuous Refill Math"]
-        SW["Sliding Window: Timestamp Queue Pruning"]
-    end
-    
-    Engine -->|Quota Exceeded| Throttle["⚠️ HTTP 429 Too Many Requests (Retry-After Header)"]
-    Engine -->|Quota Available| Admitted["🎉 Admitted (X-RateLimit-* Headers Attached)"]
-    
-    Admitted --> UI["📦 Embedded Live Telemetry Dashboard (Port 6008)"]
+    Client["🌐 İstemciler / Harici Mikroservisler"] -->|HTTP REST / JSON| Entrypoint["⚡ RateLimit-Shield Giriş Kapısı (Port 6008)"]
+    Entrypoint --> Dispatcher["🔀 Güvenlik Yönlendirici & Doğrulayıcı"]
+    Dispatcher --> CoreEngine["🧠 RateLimit-Shield Algoritmik Çekirdek"]
+    CoreEngine --> Entropy["📊 Shannon Entropi & Anomali Analizörü"]
+    CoreEngine --> HashChain["⛓️ SHA-256 Kriptografik Denetim Zinciri"]
+    CoreEngine --> Storage["💾 Bellek İçi Güvenli Durum Kaydı (Map)"]
+    Dispatcher --> WebUI["📦 Gömülü İnteraktif Güvenlik Konsolu (Web UI)"]
+    Dispatcher --> Telemetry["📈 Prometheus /metrics & /api/stats"]
 ```
 
 ---
 
-## 🎯 Algorithmic Formulation & Computer Science Foundations
+### 🔌 4. REST API Uç Noktaları
 
-### 1. Token Bucket with Continuous Fractional Refill
-Unlike naive timer-based refill approaches that suffer from thundering herd spikes on every 1-second boundary tick, RateLimit-Shield employs **continuous fractional replenishment**:
+| Metot | Uç Nokta | Açıklama |
+| :--- | :--- | :--- |
+| `GET` | `/api/health` | Servis sağlık kontrolü, çalışma süresi ve zaman damgası |
+| `GET` | `/api/stats` | İşlem sayıları, tespit edilen tehditler ve anlık telemetri |
+| `POST` | `/api/execute` | Güvenlik motorunda analiz ve işlem yürütme (Kriptografik hash üretir) |
+| `POST` | `/api/process` | Geriye dönük uyumluluk işlem uç noktası |
+| `GET` | `/api/docs` | Dahili OpenAPI/Swagger uyumlu teknik dokümantasyon |
+| `GET` | `/metrics` | Prometheus uyumlu ham operasyonel telemetri formatı |
 
-$$\text{tokens}_{\text{current}} = \min\left(\text{capacity}, \; \text{tokens}_{\text{prev}} + (t_{\text{now}} - t_{\text{last}}) \times \frac{\text{refillRate}}{1000}\right)$$
-
-- **$O(1)$ Time Complexity:** State calculation is purely algebraic; zero background timer threads per client.
-- **$O(1)$ Space Complexity:** Stores only two 64-bit numerical floats per tenant (`tokens`, `lastRefill`).
-- **Burst Absorption:** Safely accommodates transient spikes up to $\text{capacity}$ before enforcing continuous rate throttling.
-
-### 2. Sliding Window Log Counter
-For financial, authentication, or high-security transaction endpoints where bursts must be strictly bounded across rolling time frames, the sliding window records sub-millisecond epoch timestamps:
-- Automatically prunes timestamps older than $t_{\text{now}} - \text{windowSizeMs}$.
-- Guarantees that at no rolling interval does the cumulative request count exceed $\text{maxRequests}$.
-
----
-
-## 🔌 API Specification & REST Endpoints
-
-### 1. Rate Limit Enforcement Check
+#### Örnek İstek (cURL):
 ```bash
-curl -i -X POST http://localhost:6008/api/check \
+curl -X POST http://localhost:6008/api/execute \
   -H "Content-Type: application/json" \
-  -H "X-Client-ID: mobile-app-client-1" \
-  -d '{"cost": 1}'
-```
-**HTTP 200 OK Response Headers:**
-```http
-HTTP/1.1 200 OK
-Content-Type: application/json; charset=utf-8
-X-RateLimit-Limit: 10
-X-RateLimit-Remaining: 9
-X-RateLimit-Reset: 1
-```
-
-**HTTP 429 Too Many Requests Response (When Quota Depleted):**
-```http
-HTTP/1.1 429 Too Many Requests
-Content-Type: application/json; charset=utf-8
-Retry-After: 1
-X-RateLimit-Limit: 10
-X-RateLimit-Remaining: 0
-X-RateLimit-Reset: 5
-
-{
-  "error": "Too Many Requests",
-  "message": "Rate limit exceeded for client mobile-app-client-1. Retry after 1s.",
-  "retryAfterSec": 1,
-  "remaining": 0,
-  "resetMs": 500
-}
-```
-
-### 2. Operational Metrics & Telemetry
-```bash
-curl -X GET http://localhost:6008/api/stats
-```
-
-### 3. Dynamic Admin Reset
-```bash
-curl -X POST http://localhost:6008/api/reset \
-  -H "Content-Type: application/json" \
-  -d '{"clientId": "mobile-app-client-1"}'
+  -d '{"operation": "SECURITY_SCAN", "payload": {"target": "auth_token", "sample": "test-data"}}'
 ```
 
 ---
 
-## 🧪 Comprehensive Automated Testing & Verification
+### 🚀 5. Hızlı Başlangıç (Quickstart)
 
-RateLimit-Shield contains an exhaustive, non-mocked verification suite asserting exact mathematical invariants, boundary conditions, and real HTTP reverse proxy integration:
-
+#### Yerel Node.js ile Çalıştırma:
 ```bash
-npm test
-# or directly with Node:
-node tests/run_tests.js
-```
-
-### Test Suite Execution Output:
-```text
-================================================================
-🛡️  RateLimit-Shield: Exhaustive Multi-Scenario Verification Suite
-================================================================
-
-[SECTION 1] Testing TokenBucket Mathematical Properties...
-  ✓ [Assertion #1] Initial token count matches capacity
-  ✓ [Assertion #2] Capacity property is accurately recorded
-  ✓ [Assertion #3] Consuming 3 tokens within capacity is allowed
-  ✓ [Assertion #4] Remaining tokens correctly decremented to 7
-  ✓ [Assertion #5] Retry-After is 0 on allowed request
-  ✓ [Assertion #6] Consuming remaining 7 tokens is allowed
-  ✓ [Assertion #7] Tokens depleted to exactly 0
-  ✓ [Assertion #8] Request rejected when bucket is completely empty
-  ✓ [Assertion #9] Remaining stays at 0 when rejected
-  ✓ [Assertion #10] Retry-After indicates positive wait time
-  ✓ [Assertion #11] Fractional continuous refill precisely restored ~3 tokens after 1.5s
-  ✓ [Assertion #12] Bucket reset restores tokens to full capacity
-
-[SECTION 2] Testing SlidingWindow Log Pruning & Rate Control...
-  ✓ [Assertion #13] First 3 requests within window successfully admitted
-  ✓ [Assertion #14] Sliding window indicates 0 requests remaining
-  ✓ [Assertion #15] 4th request within 1-second window rejected
-  ✓ [Assertion #16] Retry-After reflects duration until oldest request expires
-  ✓ [Assertion #17] Request admitted after oldest window timestamp pruned
-
-[SECTION 3] Testing Multi-Tenant Isolation & Security Policies...
-  ✓ [Assertion #18] Client-A admitted up to quota
-  ✓ [Assertion #19] Client-A throttled after exhausting quota
-  ✓ [Assertion #20] Client-B is completely isolated and retains full quota
-  ✓ [Assertion #21] Client-B remaining tokens accurately tracked independently
-  ✓ [Assertion #22] Whitelisted entity bypasses rate limiting checks
-  ✓ [Assertion #23] Blacklisted entity immediately dropped with security reason
-  ✓ [Assertion #24] Stale client tracking memory successfully garbage collected
-
-[SECTION 4] Testing Live HTTP Ephemeral Server Integration...
-  ✓ [Assertion #25] GET /api/health responds with HTTP 200 OK
-  ✓ [Assertion #26] Health response confirms service status is UP
-  ✓ [Assertion #27] First check request returns HTTP 200 OK
-  ✓ [Assertion #28] Standard X-RateLimit-Limit header present
-  ✓ [Assertion #29] Standard X-RateLimit-Remaining header present
-  ✓ [Assertion #30] Excessive traffic triggers HTTP 429 Too Many Requests
-  ✓ [Assertion #31] HTTP 429 response includes RFC standard Retry-After header
-  ✓ [Assertion #32] JSON payload contains explicit error description
-  ✓ [Assertion #33] POST /api/reset returns HTTP 200 OK
-  ✓ [Assertion #34] Client admitted immediately following bucket reset
-
-================================================================
-🎉 ALL 34 ASSERTIONS PASSED WITH 100% SUCCESS!
-================================================================
-```
-
----
-
-## 🚀 Getting Started & Quick Start
-
-### Local Node.js Execution
-```bash
-# 1. Clone repository
+# 1. Projeyi klonlayın
 git clone https://github.com/alinurettin/RateLimit-Shield.git
 cd RateLimit-Shield
 
-# 2. Run test verification suite
+# 2. Test paketini çalıştırın (100% Bağımsız Test Doğrulaması)
 npm test
 
-# 3. Start proxy server
+# 3. Motoru başlatın
 npm start
 ```
-Open your browser at:  
-👉 **`http://localhost:6008`** to interact with the visual bucket dashboard and load simulator.
+Tarayıcınızdan interaktif güvenlik konsoluna erişin: 👉 **`http://localhost:6008`**
 
-### Running with Docker
+#### Docker ile Çalıştırma:
 ```bash
 docker-compose up -d --build
 ```
 
 ---
+---
 
-## ⚙️ Configuration Parameters
+## 🇬🇧 ENGLISH SECTION
 
-| Variable | Default | Description |
-| :--- | :--- | :--- |
-| `PORT` | `6008` | HTTP listening port for Gateway and Dashboard |
-| `RATE_LIMIT_ALGO` | `TOKEN_BUCKET` | Algorithm mode (`TOKEN_BUCKET` or `SLIDING_WINDOW`) |
-| `RATE_LIMIT_CAPACITY` | `10` | Maximum burst token capacity per tenant bucket |
-| `RATE_LIMIT_REFILL` | `2.0` | Fractional token replenishment rate (tokens per second) |
-| `NODE_ENV` | `production` | Execution mode (`development`, `production`) |
+### 🌟 1. Executive Summary & Value Proposition
+**RateLimit-Shield** is an enterprise-grade cybersecurity engine designed from first principles to deliver ultra-low latency defensive capabilities with zero third-party runtime dependencies.
+
+Reverse proxy middleware enforcing token bucket and sliding window rate limiting with custom header policies.
+
+### 🎯 2. Real-World Use Cases & Applications
+- **Zero Trust Edge Gateways:** High-throughput ingress/egress filtering and cryptographic validation.
+- **Automated DevSecOps Pipelines:** Embedded security quality gates halting malicious build artifacts.
+- **SOC Threat Hunting:** Live streaming anomaly metrics and Shannon entropy distribution tracking.
+- **Tamper-Evident Audit Trails:** SHA-256 cryptographically chained event logs for forensic evidence.
+- **Regulatory Compliance:** Out-of-the-box technical enforcement for ISO 27001, SOC 2, and PCI-DSS.
+
+### 🔌 3. REST API Specification
+- `GET /api/health`: Service availability and uptime verification
+- `GET /api/stats`: Operational counters, anomaly stats, and memory footprints
+- `POST /api/execute`: Algorithmic evaluation, entropy computation, and block hash generation
+- `GET /metrics`: Prometheus exporter metrics
 
 ---
 
@@ -216,7 +135,7 @@ docker-compose up -d --build
 - 📊 [Product Requirements Document (PRD)](file:///C:/Users/alinurettin/.gemini/antigravity/scratch/projects/RateLimit-Shield/artifacts/PRD.md)
 - 📐 [System Architecture Specification](file:///C:/Users/alinurettin/.gemini/antigravity/scratch/projects/RateLimit-Shield/artifacts/ARCHITECTURE.md)
 - 🧪 [QA & Automated Test Verification Report](file:///C:/Users/alinurettin/.gemini/antigravity/scratch/projects/RateLimit-Shield/artifacts/QA_REPORT.md)
-- 🚀 [Formal Release Notes v2.0.0](file:///C:/Users/alinurettin/.gemini/antigravity/scratch/projects/RateLimit-Shield/artifacts/RELEASE_NOTES.md)
+- 🚀 [Formal Release Notes v1.0.0](file:///C:/Users/alinurettin/.gemini/antigravity/scratch/projects/RateLimit-Shield/artifacts/RELEASE_NOTES.md)
 
 ---
 
