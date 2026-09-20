@@ -1,0 +1,12 @@
+﻿{
+  "name": "ratelimit-shield",
+  "version": "1.0.0",
+  "description": "Reverse proxy middleware enforcing token bucket and sliding window rate limiting with custom header policies.",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node tests/run_tests.js"
+  },
+  "author": "Ali Nurettin Demir",
+  "license": "MIT"
+}
