@@ -1,4 +1,4 @@
-﻿# ğŸ“Š Product Requirements Document (PRD): RateLimit-Shield
+﻿# 📊 Product Requirements Document (PRD): RateLimit-Shield
 - **Project:** RateLimit-Shield
 - **Author:** Expert Business Analyst
 - **Status:** APPROVED & COMPLETE
