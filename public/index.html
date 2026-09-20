@@ -1,36 +1,87 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RateLimit-Shield | Operational Studio</title>
+  <title>RateLimit-Shield | Distributed Rate Limiting Gateway</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header class="header">
     <div class="brand">
-      <span class="logo">⚡</span>
+      <span class="logo">🛡️</span>
       <div>
         <h1>RateLimit-Shield</h1>
-        <span class="sub">Distributed API Rate Limiting Proxy</span>
+        <span class="sub">Distributed Token Bucket & Sliding Window Proxy Gateway</span>
       </div>
     </div>
-    <div class="status-badge">🟢 Operational Active</div>
+    <div class="status-badge" id="engineStatusBadge">🟢 Engine Optimal</div>
   </header>
+
   <main class="main">
-    <div class="card">
-      <h2>Engine Overview</h2>
-      <p>Reverse proxy middleware enforcing token bucket and sliding window rate limiting with custom header policies.</p>
-      <div class="metrics-row" id="metricsRow">
-        <div class="metric"><span class="lbl">STATUS</span><span class="val">HEALTHY</span></div>
-        <div class="metric"><span class="lbl">LATENCY</span><span class="val">1.2 ms</span></div>
-        <div class="metric"><span class="lbl">THROUGHPUT</span><span class="val">1,250 req/s</span></div>
+    <!-- Visual Bucket & Real-Time Telemetry -->
+    <div class="dashboard-grid">
+      <div class="card bucket-card">
+        <h2>Live Token Bucket Visualizer</h2>
+        <div class="bucket-container">
+          <div class="bucket-outer">
+            <div class="bucket-fluid" id="bucketFluid" style="height: 100%;"></div>
+          </div>
+          <div class="bucket-labels">
+            <span class="tokens-val" id="tokensValue">10 / 10</span>
+            <span class="tokens-sub">Available Tokens</span>
+            <span class="refill-sub" id="refillRateLabel">+2.0 tokens / sec</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card telemetry-card">
+        <h2>Gateway Traffic Telemetry</h2>
+        <div class="metrics-grid">
+          <div class="metric"><span class="lbl">TOTAL REQUESTS</span><span class="val" id="mTotal">0</span></div>
+          <div class="metric"><span class="lbl">ALLOWED (200 OK)</span><span class="val green" id="mAllowed">0</span></div>
+          <div class="metric"><span class="lbl">DROPPED (429)</span><span class="val red" id="mBlocked">0</span></div>
+          <div class="metric"><span class="lbl">DROP RATE</span><span class="val" id="mDropRate">0.0%</span></div>
+          <div class="metric"><span class="lbl">ACTIVE CLIENTS</span><span class="val" id="mClients">1</span></div>
+          <div class="metric"><span class="lbl">ALGORITHM</span><span class="val blue" id="mAlgo">TOKEN_BUCKET</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Interactive Traffic Simulator -->
+    <div class="card simulator-card">
+      <h2>Traffic Simulator & Load Testing Console</h2>
+      <p class="desc">Simulate realistic client workloads to evaluate rate limiting resilience, burst absorption, and HTTP 429 backoff.</p>
+
+      <div class="control-row">
+        <div class="input-group">
+          <label for="clientInput">Client Identifier (IP / API Key):</label>
+          <input type="text" id="clientInput" value="client-demo-1">
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-primary" id="btnSingle">1 Req</button>
+          <button class="btn btn-warning" id="btnBurst">Burst (5 Reqs)</button>
+          <button class="btn btn-danger" id="btnFlood">Flood (15 Reqs)</button>
+          <button class="btn btn-outline" id="btnReset">Reset Bucket</button>
+        </div>
+      </div>
+
+      <div class="log-container">
+        <div class="log-header">
+          <span>LIVE TRAFFIC LOG (HTTP RESPONSES)</span>
+          <button class="btn-sm" id="btnClearLog">Clear</button>
+        </div>
+        <div class="log-entries" id="logEntries">
+          <div class="log-line info">Ready. Click a button above to generate traffic against /api/check.</div>
+        </div>
       </div>
     </div>
   </main>
+
   <footer class="footer">
     <p>RateLimit-Shield &bull; Autonomously engineered by 7-Agent SDLC Factory for <a href="https://github.com/alinurettin/RateLimit-Shield" target="_blank">Ali Nurettin Demir</a></p>
   </footer>
+
   <script src="app.js"></script>
 </body>
 </html>
